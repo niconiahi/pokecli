@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 func start() {
 	fetcher := createFetcher()
+	cache := createCache()
 	pagination := Pagination{next: nil, previous: nil}
 	scanner := bufio.NewScanner(os.Stdin)
+	duration := time.Minute * 5
+	go cache.StartPurgeLoop(duration)
 
 	for {
 		fmt.Print("> ")
@@ -31,7 +35,7 @@ func start() {
 			continue
 		}
 
-		err := command.execute(&fetcher, &pagination)
+		err := command.execute(&fetcher, &pagination, &cache)
 		if err != nil {
 			fmt.Println(err)
 		}

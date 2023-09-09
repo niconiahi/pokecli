@@ -14,12 +14,23 @@ type Pokeapi struct {
 	client http.Client
 }
 
-func (pokeapi *Pokeapi) GetLocationAreas(nextUrl *string) (LocationAreasResponse, error) {
+func (pokeapi *Pokeapi) GetLocationAreas(nextUrl *string, cache *Cache) (LocationAreasResponse, error) {
 	endpoint := "/location-area"
 	url := baseUrl + endpoint
 
 	if nextUrl != nil {
 		url = *nextUrl
+	}
+
+	data, ok := cache.Get(url)
+	if ok {
+		locationAreasResponse := LocationAreasResponse{}
+		err := json.Unmarshal(data, &locationAreasResponse)
+		if err != nil {
+			return LocationAreasResponse{}, err
+		}
+
+		return locationAreasResponse, nil
 	}
 
 	request, err := http.NewRequest("GET", url, nil)
@@ -36,7 +47,7 @@ func (pokeapi *Pokeapi) GetLocationAreas(nextUrl *string) (LocationAreasResponse
 		return LocationAreasResponse{}, fmt.Errorf("bad status code: %v", response.StatusCode)
 	}
 
-	data, err := io.ReadAll(response.Body)
+	data, err = io.ReadAll(response.Body)
 	if err != nil {
 		return LocationAreasResponse{}, err
 	}
@@ -46,6 +57,8 @@ func (pokeapi *Pokeapi) GetLocationAreas(nextUrl *string) (LocationAreasResponse
 	if err != nil {
 		return LocationAreasResponse{}, err
 	}
+
+	cache.Add(url, data)
 
 	return locationAreasResponse, nil
 }

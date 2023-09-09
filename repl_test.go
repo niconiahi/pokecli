@@ -10,13 +10,15 @@ func TestGetWords(t *testing.T) {
 		{
 			input: "hello world",
 			expected: []string{
-				"hello world",
+				"hello",
+				"world",
 			},
 		},
 		{
 			input: "Hello world",
 			expected: []string{
-				"hello world",
+				"hello",
+				"world",
 			},
 		},
 	}

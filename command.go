@@ -10,7 +10,7 @@ import (
 type Command struct {
 	name        string
 	description string
-	execute     func(pokeapi *Pokeapi, pagination *Pagination) error
+	execute     func(pokeapi *Pokeapi, pagination *Pagination, cache *Cache) error
 }
 
 type Pagination struct {
@@ -43,7 +43,7 @@ func getCommands() map[string]Command {
 	}
 }
 
-func executeHelp(pokeapi *Pokeapi, pagination *Pagination) error {
+func executeHelp(pokeapi *Pokeapi, pagination *Pagination, cache *Cache) error {
 	commands := getCommands()
 	fmt.Println("Available commands:")
 
@@ -55,8 +55,8 @@ func executeHelp(pokeapi *Pokeapi, pagination *Pagination) error {
 	return nil
 }
 
-func executeMap(pokeapi *Pokeapi, pagination *Pagination) error {
-	response, err := pokeapi.GetLocationAreas(pagination.next)
+func executeMap(pokeapi *Pokeapi, pagination *Pagination, cache *Cache) error {
+	response, err := pokeapi.GetLocationAreas(pagination.next, cache)
 	if err != nil {
 		log.Fatal("failed get the location areas")
 	}
@@ -72,12 +72,12 @@ func executeMap(pokeapi *Pokeapi, pagination *Pagination) error {
 	return nil
 }
 
-func executeMapb(pokeapi *Pokeapi, pagination *Pagination) error {
+func executeMapb(pokeapi *Pokeapi, pagination *Pagination, cache *Cache) error {
 	if pagination.previous == nil {
 		return errors.New("you are on the first page")
 	}
 
-	response, err := pokeapi.GetLocationAreas(pagination.previous)
+	response, err := pokeapi.GetLocationAreas(pagination.previous, cache)
 	if err != nil {
 		log.Fatal("failed get the location areas")
 	}
@@ -93,7 +93,7 @@ func executeMapb(pokeapi *Pokeapi, pagination *Pagination) error {
 	return nil
 }
 
-func executeExit(pokeapi *Pokeapi, pagination *Pagination) error {
+func executeExit(pokeapi *Pokeapi, pagination *Pagination, cache *Cache) error {
 	os.Exit(0)
 
 	return nil
