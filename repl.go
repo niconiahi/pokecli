@@ -21,7 +21,6 @@ func start() {
 		scanner.Scan()
 		text := scanner.Text()
 		words := getWords(text)
-
 		if len(words) == 0 {
 			fmt.Println("missing command: run help to get a list of available commands")
 			continue
@@ -29,13 +28,17 @@ func start() {
 
 		commands := getCommands()
 		command, ok := commands[words[0]]
-
 		if !ok {
 			fmt.Println("invalid command")
 			continue
 		}
 
-		err := command.execute(&fetcher, &pagination, &cache)
+		args := []string{}
+		if len(words) > 1 {
+			args = words[1:]
+		}
+
+		err := command.execute(&fetcher, &pagination, &cache, args...)
 		if err != nil {
 			fmt.Println(err)
 		}
