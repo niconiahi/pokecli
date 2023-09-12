@@ -1,9 +1,13 @@
 package main
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 type Cache struct {
 	entries map[string]Entry
+	mux     *sync.Mutex
 }
 
 type Entry struct {
@@ -14,12 +18,15 @@ type Entry struct {
 func createCache() Cache {
 	cache := Cache{
 		entries: make(map[string]Entry),
+		mux:     &sync.Mutex{},
 	}
 
 	return cache
 }
 
 func (cache *Cache) Add(key string, val []byte) {
+	cache.mux.Lock()
+	defer cache.mux.Unlock()
 	cache.entries[key] = Entry{
 		val:       val,
 		createdAt: time.Now().UTC(),
@@ -27,6 +34,8 @@ func (cache *Cache) Add(key string, val []byte) {
 }
 
 func (cache *Cache) Get(key string) ([]byte, bool) {
+	cache.mux.Lock()
+	defer cache.mux.Unlock()
 	entry, ok := cache.entries[key]
 	return entry.val, ok
 }
@@ -39,6 +48,8 @@ func (cache *Cache) StartPurgeLoop(duration time.Duration) {
 }
 
 func (cache *Cache) Purge(duration time.Duration) {
+	cache.mux.Lock()
+	defer cache.mux.Unlock()
 	time := time.Now().UTC().Add(-duration)
 	for i, entry := range cache.entries {
 		if entry.createdAt.Before(time) {
