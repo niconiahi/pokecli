@@ -50,12 +50,26 @@ func getCommands() map[string]Command {
 			description: "Check if the pokemon is caught",
 			execute:     executeInspect,
 		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "Lists all captured pokemons",
+			execute:     executePokedex,
+		},
 		"mapb": {
 			name:        "mapb",
 			description: "Get previous page of areas",
 			execute:     executeMapb,
 		},
 	}
+}
+
+func executePokedex(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons map[string]PokemonResponse, args ...string) error {
+	fmt.Println("captured pokemons:")
+	for _, pokemon := range pokemons {
+		fmt.Printf("%s\n", pokemon.Name)
+	}
+
+	return nil
 }
 
 func executeInspect(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons map[string]PokemonResponse, args ...string) error {
