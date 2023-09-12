@@ -11,6 +11,7 @@ import (
 func start() {
 	fetcher := createFetcher()
 	cache := createCache()
+	pokemons := make(map[string]PokemonResponse)
 	pagination := Pagination{next: nil, previous: nil}
 	scanner := bufio.NewScanner(os.Stdin)
 	duration := time.Minute * 5
@@ -38,7 +39,7 @@ func start() {
 			args = words[1:]
 		}
 
-		err := command.execute(&fetcher, &pagination, &cache, args...)
+		err := command.execute(&fetcher, &pagination, &cache, pokemons, args...)
 		if err != nil {
 			fmt.Println(err)
 		}

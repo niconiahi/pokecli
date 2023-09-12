@@ -3,13 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 )
 
 type Command struct {
 	name        string
 	description string
-	execute     func(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, args ...string) error
+	execute     func(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons map[string]PokemonResponse, args ...string) error
 }
 
 type Pagination struct {
@@ -35,9 +36,14 @@ func getCommands() map[string]Command {
 			execute:     executeMap,
 		},
 		"explore": {
-			name:        "explore",
+			name:        "explore {area_name}",
 			description: "Lists the pokemons of an area",
 			execute:     executeExplore,
+		},
+		"catch": {
+			name:        "catch {pokemon_name}",
+			description: "Attemps to catch the selected pokemon",
+			execute:     executeCatch,
 		},
 		"mapb": {
 			name:        "mapb",
@@ -47,18 +53,41 @@ func getCommands() map[string]Command {
 	}
 }
 
-func executeExplore(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, args ...string) error {
+func executeCatch(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons map[string]PokemonResponse, args ...string) error {
+	if len(args) != 1 {
+		return errors.New("no pokemon name provided")
+	}
+
+	name := args[0]
+	pokemon, err := pokeapi.GetPokemon(name, cache)
+	if err != nil {
+		return err
+	}
+
+	const threshold = 50
+	random := rand.Intn(pokemon.BaseExperience)
+	if random < threshold {
+		fmt.Printf("failed to catch %s", name)
+	}
+
+	fmt.Printf("%s was caught", name)
+	pokemons[name] = pokemon
+
+	return nil
+}
+
+func executeExplore(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons map[string]PokemonResponse, args ...string) error {
 	if len(args) != 1 {
 		return errors.New("no location area name provided")
 	}
 
 	name := args[0]
-	response, err := pokeapi.GetLocationArea(name, cache)
+	location, err := pokeapi.GetLocationArea(name, cache)
 	if err != nil {
 		return err
 	}
 
-	for _, pokemon := range response.PokemonEncounters {
+	for _, pokemon := range location.PokemonEncounters {
 		fmt.Printf("- %s", pokemon.Pokemon.Name)
 		fmt.Println()
 	}
@@ -66,7 +95,7 @@ func executeExplore(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, args
 	return nil
 }
 
-func executeHelp(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, args ...string) error {
+func executeHelp(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons map[string]PokemonResponse, args ...string) error {
 	commands := getCommands()
 	fmt.Println("Available commands:")
 
@@ -78,7 +107,7 @@ func executeHelp(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, args ..
 	return nil
 }
 
-func executeMap(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, args ...string) error {
+func executeMap(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons map[string]PokemonResponse, args ...string) error {
 	response, err := pokeapi.GetLocationAreas(pagination.next, cache)
 	if err != nil {
 		return errors.New("failed get the location areas")
@@ -95,7 +124,7 @@ func executeMap(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, args ...
 	return nil
 }
 
-func executeMapb(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, args ...string) error {
+func executeMapb(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons map[string]PokemonResponse, args ...string) error {
 	if pagination.previous == nil {
 		return errors.New("you are on the first page")
 	}
@@ -116,7 +145,7 @@ func executeMapb(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, args ..
 	return nil
 }
 
-func executeExit(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, args ...string) error {
+func executeExit(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons map[string]PokemonResponse, args ...string) error {
 	os.Exit(0)
 
 	return nil
