@@ -45,12 +45,33 @@ func getCommands() map[string]Command {
 			description: "Attemps to catch the selected pokemon",
 			execute:     executeCatch,
 		},
+		"inspect": {
+			name:        "inspect {pokemon_name}",
+			description: "Check if the pokemon is caught",
+			execute:     executeInspect,
+		},
 		"mapb": {
 			name:        "mapb",
 			description: "Get previous page of areas",
 			execute:     executeMapb,
 		},
 	}
+}
+
+func executeInspect(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons map[string]PokemonResponse, args ...string) error {
+	if len(args) != 1 {
+		return errors.New("no pokemon name provided")
+	}
+
+	name := args[0]
+	pokemon, ok := pokemons[name]
+	if !ok {
+		return errors.New("you haven't caught this pokemon")
+	}
+
+	fmt.Printf("%s is already caught\n", pokemon.Name)
+
+	return nil
 }
 
 func executeCatch(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons map[string]PokemonResponse, args ...string) error {
@@ -70,7 +91,7 @@ func executeCatch(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemo
 		fmt.Printf("failed to catch %s", name)
 	}
 
-	fmt.Printf("%s was caught", name)
+	fmt.Printf("%s was caught\n", name)
 	pokemons[name] = pokemon
 
 	return nil
@@ -88,8 +109,7 @@ func executeExplore(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, poke
 	}
 
 	for _, pokemon := range location.PokemonEncounters {
-		fmt.Printf("- %s", pokemon.Pokemon.Name)
-		fmt.Println()
+		fmt.Printf("- %s\n", pokemon.Pokemon.Name)
 	}
 
 	return nil
@@ -100,8 +120,7 @@ func executeHelp(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemon
 	fmt.Println("Available commands:")
 
 	for _, command := range commands {
-		fmt.Printf("- %s: %s", command.name, command.description)
-		fmt.Println("")
+		fmt.Printf("- %s: %s\n", command.name, command.description)
 	}
 
 	return nil
@@ -117,8 +136,7 @@ func executeMap(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemons
 	pagination.previous = response.Previous
 
 	for _, area := range response.Results {
-		fmt.Printf("- %s", area.Name)
-		fmt.Println()
+		fmt.Printf("- %s\n", area.Name)
 	}
 
 	return nil
@@ -138,8 +156,7 @@ func executeMapb(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemon
 	pagination.previous = response.Previous
 
 	for _, area := range response.Results {
-		fmt.Printf("- %s", area.Name)
-		fmt.Println()
+		fmt.Printf("- %s\n", area.Name)
 	}
 
 	return nil
