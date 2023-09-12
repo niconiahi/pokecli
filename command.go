@@ -69,7 +69,13 @@ func executeInspect(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, poke
 		return errors.New("you haven't caught this pokemon")
 	}
 
-	fmt.Printf("%s is already caught\n", pokemon.Name)
+	fmt.Printf("name: %s\n", pokemon.Name)
+	fmt.Printf("height: %v\n", pokemon.Height)
+	fmt.Printf("weight: %v\n", pokemon.Weight)
+	fmt.Println("abilities:")
+	for _, ability := range pokemon.Abilities {
+		fmt.Printf("  - %s\n", ability.Ability.Name)
+	}
 
 	return nil
 }
@@ -88,7 +94,9 @@ func executeCatch(pokeapi *Pokeapi, pagination *Pagination, cache *Cache, pokemo
 	const threshold = 50
 	random := rand.Intn(pokemon.BaseExperience)
 	if random < threshold {
-		fmt.Printf("failed to catch %s", name)
+		fmt.Printf("failed to catch %s\n", name)
+
+		return nil
 	}
 
 	fmt.Printf("%s was caught\n", name)
